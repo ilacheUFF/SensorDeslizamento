@@ -63,6 +63,8 @@ char comandos = 0;//usado para escolher qual comando enviar.
 char listaGPIO[]={5,0}; // usado para ler as GPIOs que estão neste vetor ... pode-se ler da 0 até 7
 char mensaje='a';
 long valorAD;
+int radio=8;
+int leitura;
 //===============================================================================
 ////Timer : Quando este timer "estourar" ... o led mudará seu estado e será incrementado o tempo usado no polling.
 //void ICACHE_RAM_ATTR onTimerISR(){
@@ -109,19 +111,29 @@ void setup() {
 
 // the loop function runs over and over again forever
 void loop() {
-
+radio=8;
 if (SWSerial2.available())
-{
-  delay(20);
-  for (int i = 0; i <= 6; i++) {
-  dadosSensores[i]=SWSerial2.parseInt();
-  Serial.print(dadosSensores[i]);
-  //Serial.print(SWSerial2.read());
-  Serial.print(":");
-  delay(20);
+{ Serial.println("-->");
+leitura=SWSerial2.read();
+  if (leitura==radio)
+  {
+    delay(20);
+    for (int i = 0; i <= 6; i++) {
+      dadosSensores[i]=SWSerial2.parseInt();
+      Serial.print(dadosSensores[i]);
+      //Serial.print(SWSerial2.read());
+      Serial.print(":");
+      delay(20);
+    }
   }
-  while(SWSerial2.available()){
-  SWSerial2.parseInt();}
+  else
+  { 
+    Serial.println(leitura);
+    while(SWSerial2.available()){
+    delay(20);
+    SWSerial2.parseInt();}    
+  }
+  
 }
 Serial.println(":");
 Serial.println("***************");
