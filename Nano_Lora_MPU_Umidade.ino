@@ -2,7 +2,7 @@
 /* 
  *  Adaptado do desenvolvido pelo FilpeFlop https://www.filipeflop.com/blog/acelerometro-com-esp8266-nodemcu
  */
-//#include <ESP8266WiFi.h> //Biblioteca do ESP8622
+
 #include <Wire.h>         // biblioteca de comunicação I2C
 #include<SoftwareSerial.h> 
 #include <math.h>
@@ -20,33 +20,66 @@ const int GYRO_CONFIG =   0x1B; // registro de configuração do giroscópio
 const int ACCEL_CONFIG =  0x1C; // registro de configuração do acelerômetro
 const int ACCEL_XOUT =    0x3B; // registro de leitura do eixo X do acelerômetro
  
+bool led_state = false;   //Definir estado de LED do Arduino nano
+bool first_time =true;    // Variavel para verificar se é a primeira vez que esta sendo ligado
 
-//const int sda_pin = D2; // definição do pino I2C SDA
-//const int scl_pin = D1; // definição do pino I2C SCL
- 
-bool led_state = false;
-bool first_time =true;
-
-unsigned long millisTarefa1 = millis();
+unsigned long millisTarefa1 = millis();    // Variavel para o tempo de envio de sinal
 const unsigned long timeGetInfo =4000;  //Tempo para puxar dados do sensor
 
-String postStr;
+String postStr;   //Variavel global com o texto que será enviado.
 
 // variáveis para armazenar os dados "crus" do acelerômetro
 int16_t AcX, AcY, AcZ, Tmp, GyX, GyY, GyZ, angx, angy, angz;
 int u1,u2,u3 ; //Leituras das umidades
 
-//int AcX, AcY, AcZ, Tmp, GyX, GyY, GyZ; 
+
+
+void setup()
+{
+  pinMode(LED_BUILTIN, OUTPUT);
+  pinMode(A0,INPUT); //Sensores Umidade
+  pinMode(A1,INPUT); //Sensores Umidades 1
+  pinMode(A2,INPUT); //Sensores Umidades 2
+  Serial.begin(9600);
+  Serial.println("Iniciando configuração do MPU6050");
+  SWSerial2.begin(9600);
   
-
-
+  initI2C(); //Inicia comunicação I2C
+  initMPU(); // Inicia o MPU
+  checkMPU(MPU_ADDR); // Verifica o MPU
  
-/*
- * função que configura a I2C com os pinos desejados 
- * sda_pin -> D2
- * scl_pin -> D1
- */
-void initI2C() 
+  Serial.println("Configuração finalizada, iniciando loop");  
+}
+void loop()
+{
+  if (((millis() - millisTarefa1)>timeGetInfo) || (first_time==true))
+  {
+        readRawMPU();    // lê os dados do sensor e os almacena nas variaves globais
+        checkMPU(MPU_ADDR);
+        readUmidade(); // lê os dados do sensor e os almacena nas variaves globais
+        criarTextoParaEnviar();  //Converte as variaveis em texto para enviar postSTR
+        first_time=false;
+
+        millisTarefa1=millis();
+        Serial.println("Enviando dados");
+        postStr +="/D";
+        SWSerial2.print(postStr);
+  }
+  delay(1000);
+  }
+
+
+
+  /*****************************************
+   * 
+   * *************FUNÇÕES*******************
+   * 
+   * **************************************/
+
+
+
+
+   void initI2C()   //Inicializa o I2C para o sensor de aceleração
 {
   //Serial.println("---inside initI2C");
   //Wire.begin(sda_pin, scl_pin);
@@ -219,14 +252,7 @@ void readRawMPU()
   angy = atan(AcZ/AcX);
   angz = atan(AcY/AcX);
 
-  postStr = String(AcX);
-        postStr +="/";
-        postStr += String(AcY);
-        postStr +="/";
-        postStr += String(AcZ);
-        postStr +="/";
-        postStr += String(round((Tmp/340.00+36.53)*100));
-        postStr +="/";
+
                              
   Serial.print("AcX = "); Serial.print(AcX);
   Serial.print(" | AcY = "); Serial.print(AcY);
@@ -239,8 +265,7 @@ void readRawMPU()
   Serial.print(" | Ângulo X = "); Serial.print(angx);
   Serial.print(" | Ângulo Y = "); Serial.print(angy);
   Serial.print(" | Ângulo Z = "); Serial.println(angz);
-  Serial.println("*******************************");
-  Serial.println(postStr);
+
   led_state = !led_state;
   digitalWrite(LED_BUILTIN, led_state);         // pisca LED do NodeMCU a cada leitura do sensor
   delay(50);                                        
@@ -251,43 +276,24 @@ void readUmidade()
   u1=analogRead(A0);
   u2=analogRead(A1);
   u3=analogRead(A2);
-  postStr += String(u1);
-  postStr +="/";
-  postStr += String(u2);
-  postStr +="/";
-  postStr += String(u3);
-  Serial.println(postStr);
+
   }
 
-void setup()
-{
-  pinMode(LED_BUILTIN, OUTPUT);
-  pinMode(A0,INPUT); //Sensores Umidade
-  pinMode(A1,INPUT); //Sensores Umidades 1
-  pinMode(A2,INPUT); //Sensores Umidades 2
-  Serial.begin(9600);
-  Serial.println("nIniciando configuração do MPU6050n");
-  SWSerial2.begin(9600);
-  
-  initI2C();
-  initMPU();
-  checkMPU(MPU_ADDR);
- 
-  Serial.println("nConfiguração finalizada, iniciando loopn");  
-}
-void loop()
-{
-  if (((millis() - millisTarefa1)>timeGetInfo) || (first_time==true))
-  {
-        readRawMPU();    // lê os dados do sensor
-        checkMPU(MPU_ADDR);
-        readUmidade();
-        first_time=false;
-
-        millisTarefa1=millis();
-        Serial.println("Enviando2");
-        postStr +="/D";
-        SWSerial2.print(postStr);
-  }
-  delay(1000);
+void criarTextoParaEnviar()
+  {  
+  Serial.println("*******************************");
+postStr = String(AcX);
+postStr += "/";
+postStr += String(AcY);
+postStr += "/";
+postStr += String(AcZ);
+postStr += "/";
+postStr += String(round((Tmp/340.00+36.53)*100));
+postStr += "/";
+postStr += String(u1);
+postStr += "/";
+postStr += String(u2);
+postStr += "/";
+postStr += String(u3);
+Serial.println(postStr);
   }
