@@ -162,16 +162,16 @@ void loop() {
         postStr += "\r\n\r\n";    
  switch (id) {
           case 2:  // your hand is a few inches from the sensor
-          chave_escrita_thingspeak = "UESIQVP4GQMKSXJJ";                
+          chave_escrita_thingspeak = "UESIQVP4GVQMKSXJJ";                
           break;
           case 3:  // your hand is nowhere near the sensor
-          chave_escrita_thingspeak = "DBC8E2SR5NYM5ND9";  
+          chave_escrita_thingspeak = "DBC8E2SR5NVYM5ND9";  
           break;
           case 7:  // your hand is on the sensor
-          chave_escrita_thingspeak = "RSUM8UFCVFD3P4Z1";      
+          chave_escrita_thingspeak = "RSUM8UFCVVFD3P4Z1";      
           break;
           default:
-          chave_escrita_thingspeak = "RSUM8UFCVFD3P4Z1";      
+          chave_escrita_thingspeak = "RSUM8UFCVVFD3P4Z1";      
           break;
         }
 //        chave_escrita_thingspeak = ChavesThing[id];
