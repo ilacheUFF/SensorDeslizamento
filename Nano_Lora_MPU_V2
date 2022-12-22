@@ -8,7 +8,8 @@
 #include <math.h>
 //========SoftwareSerial==================
 SoftwareSerial SWSerial2(2, 3);  //D2, D3 : Será usada a serial por software para deixar livre a serial do monitor serial
- 
+#define pinoLoraMesh 10  //Pino de conexão entre o nano e o lora. O lora enviara um sinal alto quando queira os dados do arduino nano.
+
 /*
  * Definições de alguns endereços mais comuns do MPU6050
  * os registros podem ser facilmente encontrados no mapa de registros do MPU6050
@@ -24,7 +25,8 @@ bool led_state = false;   //Definir estado de LED do Arduino nano
 bool first_time =true;    // Variavel para verificar se é a primeira vez que esta sendo ligado
 
 unsigned long millisTarefa1 = millis();    // Variavel para o tempo de envio de sinal
-const unsigned long timeGetInfo =60000;  //Tempo para puxar dados do sensor
+unsigned long delta_tempo = 6000000;
+const unsigned long timeGetInfo =600000;  //Tempo para puxar dados do sensor
 
 String postStr;   //Variavel global com o texto que será enviado.
 
@@ -37,7 +39,7 @@ int u1,u2,u3 ; //Leituras das umidades
 void setup()
 {
   pinMode(LED_BUILTIN, OUTPUT);
-  pinMode(10,INPUT);
+  pinMode(pinoLoraMesh,INPUT);
   pinMode(A0,INPUT); //Sensores Umidade
   pinMode(A1,INPUT); //Sensores Umidades 1
   pinMode(A2,INPUT); //Sensores Umidades 2
@@ -54,9 +56,13 @@ void setup()
 void loop()
 {
   bool leitura;
-  leitura = digitalRead(10);
-  //if (((millis() - millisTarefa1)>timeGetInfo) || (first_time==true))
-  if ( leitura || (first_time==true))
+  
+  leitura = digitalRead(pinoLoraMesh);
+  
+  atualiza_delta_tempo();
+  
+
+  if ( leitura && delta_tempo>timeGetInfo)
   {
         readRawMPU();    // lê os dados do sensor e os almacena nas variaves globais
         checkMPU(MPU_ADDR);
@@ -70,6 +76,7 @@ void loop()
         SWSerial2.print(postStr);
         delay(10000);
   }
+  
   delay(1000);
   }
 
@@ -80,15 +87,26 @@ void loop()
    * *************FUNÇÕES*******************
    * 
    * **************************************/
+void atualiza_delta_tempo()
+{
+
+if (first_time == true)
+  {
+    delta_tempo = timeGetInfo*10;
+  }
+  else
+  {
+    delta_tempo = millis() - millisTarefa1;
+  }
+  
+}
 
 
-
-
-   void initI2C()   //Inicializa o I2C para o sensor de aceleração
+void initI2C()   //Inicializa o I2C para o sensor de aceleração
 {
   //Serial.println("---inside initI2C");
   //Wire.begin(sda_pin, scl_pin);
-  Wire.begin();  //Usa os portos padroes do NODE D1=SCL D2=SDA
+  Wire.begin();  //Usa os portos padroes do Nano 
 }
  
 /*
@@ -278,15 +296,14 @@ void readRawMPU()
 
 void readUmidade()
 {
-  u1=analogRead(A0);
-  u2=analogRead(A1);
-  u3=analogRead(A2);
-
-  }
+  u1 = analogRead(A0);
+  u2 = analogRead(A1);
+  u3 = analogRead(A2);
+}
 
 void criarTextoParaEnviar()
   {  
-  Serial.println("*******************************");
+Serial.println("*******************************");
 postStr = String(AcX);
 postStr += "/";
 postStr += String(AcY);
