@@ -32,7 +32,7 @@ unsigned long last_connection_time;
 
 //constantes e variáveis globais
 unsigned long millisTarefa1 = millis();
-const unsigned long timeGetInfo =60000;
+const unsigned long timeGetInfo = 300000;
 char EnderecoAPIThingSpeak[] = "api.thingspeak.com";
 
 //================================================================================
@@ -52,6 +52,7 @@ char comandos = 0;//usado para escolher qual comando enviar.
 char listaGPIO[]={5,0}; // usado para ler as GPIOs que estão neste vetor ... pode-se ler da 0 até 7
 char mensaje='a';
 long valorAD;
+String postStr;
 //===============================================================================
 ////Timer : Quando este timer "estourar" ... o led mudará seu estado e será incrementado o tempo usado no polling.
 //void ICACHE_RAM_ATTR onTimerISR(){
@@ -124,27 +125,65 @@ void loop() {
         Serial.println("Liga Sensor");//imprime na serial do monitor
         SetGPIO(id, 0x00, 0x01); //IMPORTANTE: Aqui temos uma ação... Se a entrada digital estiver em nível alto então... é chamada a função SetGPIO que por sua vez envia o comando para ligar a o gpio 0 e acinar o Relé ...
         lerRadio();
+        
         Serial.println("Terminou Trecho do LigaSensor");
         delay(6000);
+
+        pegarDadosSerial();
         
-        S1=0;
-        S2=0;
-        S3=0;
-        S4=0;
-        S5=0;
-        S6=0;
-        S7=0;
-        if (SWSerial2.available()>0)
-        {   
-          S1 = SWSerial2.parseInt();  //read character
-          S2 = SWSerial2.parseInt();  //read character
-          S3 = SWSerial2.parseInt();  //read character
-          S4 = SWSerial2.parseInt();
-          S5 = SWSerial2.parseInt();
-          S6 = SWSerial2.parseInt();
-          S7 = SWSerial2.parseInt();
-        }  
-        String postStr = apiKey;
+        preparStringThingSpeak();
+        
+        selecionarChaveThingSpeak();          
+
+        Serial.println(postStr);
+        envia_informacoes_thingspeak(postStr);
+
+        //Serial.println("Solicita leitura da entrada análoga");//imprime na serial do monitor
+        //LerGPIO(id, listaGPIO[0]);//%5 porque o array com IDs de EndDevices a ser percorrido só tem 5 endereços
+        //valorAD=0; //Zera o valor analógico - Teste para zerar o valor no thingspeak quando não recebe dado
+        //lerRadio();    
+        
+        Serial.println("Desliga Sensor");//imprime na serial do monitor
+        SetGPIO(id, 0x00, 0x00); //IMPORTANTE: Aqui temos uma ação... Se a entrada digital estiver em nível alto então... é chamada a função SetGPIO que por sua vez envia o comando para ligar a o gpio 0 e acinar o Relé ...
+        lerRadio();
+
+        delay(2000);
+
+        SetGPIO(id, 0x00, 0x00); //Envio de comando para desligar novamente o envio de dados, para reforçar o pedido.
+        lerRadio();
+        
+        polingID++;  
+        millisTarefa1=millis();
+    
+     }
+}
+
+// =============================================================
+
+void selecionarChaveThingSpeak()
+{
+  switch (id) {
+          case 2:  // your hand is a few inches from the sensor
+          chave_escrita_thingspeak = "UESIQVP4GVQMKSXJJ";                
+          break;
+          case 3:  // your hand is nowhere near the sensor
+          chave_escrita_thingspeak = "DBC8E2SR5NVYM5ND9";  
+          break;
+          case 7:  // your hand is on the sensor
+          chave_escrita_thingspeak = "RSUM8UFCVVFD3P4Z1";      
+          break;
+          default:
+          chave_escrita_thingspeak = "RSUM8UFCVVFD3P4Z1";      
+          break;
+        }
+        //        chave_escrita_thingspeak = ChavesThing[id];
+        Serial.print("Chave de canal = ");
+        Serial.println(chave_escrita_thingspeak);
+  
+}
+void preparStringThingSpeak()
+{
+        postStr = apiKey;
         postStr +="&field1=";
         postStr += String(S1);
         postStr +="&field2=";
@@ -160,44 +199,28 @@ void loop() {
         postStr +="&field7=";
         postStr += String(S7);
         postStr += "\r\n\r\n";    
- switch (id) {
-          case 2:  // your hand is a few inches from the sensor
-          chave_escrita_thingspeak = "UESIQVP4GVQMKSXJJ";                
-          break;
-          case 3:  // your hand is nowhere near the sensor
-          chave_escrita_thingspeak = "DBC8E2SR5NVYM5ND9";  
-          break;
-          case 7:  // your hand is on the sensor
-          chave_escrita_thingspeak = "RSUM8UFCVVFD3P4Z1";      
-          break;
-          default:
-          chave_escrita_thingspeak = "RSUM8UFCVVFD3P4Z1";      
-          break;
-        }
-//        chave_escrita_thingspeak = ChavesThing[id];
-        Serial.print("Chave de canal = ");
-        Serial.println(chave_escrita_thingspeak);
-        Serial.println(postStr);
-        envia_informacoes_thingspeak(postStr);
-
-        //Serial.println("Solicita leitura da entrada análoga");//imprime na serial do monitor
-        //LerGPIO(id, listaGPIO[0]);//%5 porque o array com IDs de EndDevices a ser percorrido só tem 5 endereços
-        //valorAD=0; //Zera o valor analógico - Teste para zerar o valor no thingspeak quando não recebe dado
-        //lerRadio();    
-        
-        Serial.println("Desliga Sensor");//imprime na serial do monitor
-        SetGPIO(id, 0x00, 0x00); //IMPORTANTE: Aqui temos uma ação... Se a entrada digital estiver em nível alto então... é chamada a função SetGPIO que por sua vez envia o comando para ligar a o gpio 0 e acinar o Relé ...
-        lerRadio();
-        polingID++;
-  
-        millisTarefa1=millis();
-    
-     }
 }
-
-// =============================================================
-
-
+void  pegarDadosSerial()
+{
+        S1=0;
+        S2=0;
+        S3=0;
+        S4=0;
+        S5=0;
+        S6=0;
+        S7=0;
+        
+        if (SWSerial2.available()>0)
+        {   
+          S1 = SWSerial2.parseInt();  //read character
+          S2 = SWSerial2.parseInt();  //read character
+          S3 = SWSerial2.parseInt();  //read character
+          S4 = SWSerial2.parseInt();
+          S5 = SWSerial2.parseInt();
+          S6 = SWSerial2.parseInt();
+          S7 = SWSerial2.parseInt();
+        }  
+}
 
 void lerRadio()
 {
@@ -551,5 +574,3 @@ void verifica_conexao_wifi(void)
   digitalWrite(LED_BUILTIN, LOW);
   delay(tempo);
  }
-
- 
