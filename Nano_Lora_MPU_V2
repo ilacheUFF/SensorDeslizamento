@@ -44,6 +44,7 @@ void setup()
   pinMode(A1,INPUT); //Sensores Umidades 1
   pinMode(A2,INPUT); //Sensores Umidades 2
   Serial.begin(9600);
+  delay(100);
   Serial.println("Iniciando configuração do MPU6050");
   SWSerial2.begin(9600);
   
@@ -64,12 +65,8 @@ void loop()
 
   if ( leitura && delta_tempo>timeGetInfo)
   {
-        readRawMPU();    // lê os dados do sensor e os almacena nas variaves globais
-        checkMPU(MPU_ADDR);
-        readUmidade(); // lê os dados do sensor e os almacena nas variaves globais
+        ler_sensores();
         criarTextoParaEnviar();  //Converte as variaveis em texto para enviar postSTR
-        first_time=false;
-
         millisTarefa1=millis();
         Serial.println("Enviando dados");
         postStr +="/D";
@@ -87,12 +84,26 @@ void loop()
    * *************FUNÇÕES*******************
    * 
    * **************************************/
+void ler_sensores()
+{
+        readRawMPU();    // lê os dados do sensor e os almacena nas variaves globais
+        checkMPU(MPU_ADDR);
+        readUmidade(); // lê os dados do sensor e os almacena nas variaves globais
+
+}
 void atualiza_delta_tempo()
 {
 
 if (first_time == true)
   {
     delta_tempo = timeGetInfo*10;
+    
+    Serial.println("Inicio leitura local (sem Lora) *************");
+    ler_sensores();
+    criarTextoParaEnviar(); 
+    Serial.println("Fim leitura local (sem Lora)*************");
+    first_time=false;
+    
   }
   else
   {
