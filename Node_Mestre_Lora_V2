@@ -15,8 +15,14 @@ SoftwareSerial SWSerial2(12, 14);  //D6, D5 : Será usada a serial por software 
 
 /* defines - wi-fi */
 
-#define SSID_REDE "ENG_TER_2G" /* coloque aqui o nome da rede que se deseja conectar */
-#define SENHA_REDE "engenharia235" /* coloque aqui a senha da rede que se deseja conectar */
+//#define SSID_REDE "ENG_TER_2G" /* coloque aqui o nome da rede que se deseja conectar */
+//#define SENHA_REDE "engenharia235" /* coloque aqui a senha da rede que se deseja conectar */
+
+//#define SSID_REDE "PGRAEL-Visitantes" /* coloque aqui o nome da rede que se deseja conectar */
+//#define SENHA_REDE "bonsventos" /* coloque aqui a senha da rede que se deseja conectar */
+
+#define SSID_REDE "Federal 2014" /* coloque aqui o nome da rede que se deseja conectar */
+#define SENHA_REDE "bucaramanga" /* coloque aqui a senha da rede que se deseja conectar */
 
 #define LED_PLACA 16
 
@@ -26,7 +32,7 @@ int S1,S2,S3,S4,S5,S6,S7;
 char apiKey[] = "api.thingspeak.com";
 String chave_escrita_thingspeak = "RSUM8UFCVFD3P4Z1";  /* Coloque aqui sua chave de escrita do seu canal */
 
-String ChavesThing[16] = { "RSUM8UFCVFD3P4Z1", "UESIQVP4GQMKSXJJ", "DBC8E2SR5NYM5ND9" };
+String ChavesThing[16] = { "6CRRBOTJJMKMKWMR", "6CRRBOTJJMKMKWMR", "6CRRBOTJJMKMKWMR" };
 
 unsigned long last_connection_time;
 
@@ -45,7 +51,7 @@ char inData[255]; // Buffer com tamanho suficiente para receber qualquer mensage
 char inChar=-1; // char para receber um caractere lido
 byte indice = 0; // índice para percorrer o vetor de char = Buffer
 const int nRadios=3;
-int listaEndDevices[nRadios] = {7,3,2};//pode aumentar o tamanho do arry e incluir um novo ID. coloquei 1,2,1,2,1 ... porque no teste só temos os IDs 1 e 2 ... em uma rede maior ... deve-se cololcar os IDs existentes 1,2,3,50,517, 714,... qualquer inteiro de 1 até 1023.
+int listaEndDevices[nRadios] = {3,7,2};//pode aumentar o tamanho do arry e incluir um novo ID. coloquei 1,2,1,2,1 ... porque no teste só temos os IDs 1 e 2 ... em uma rede maior ... deve-se cololcar os IDs existentes 1,2,3,50,517, 714,... qualquer inteiro de 1 até 1023.
 int polingID=0;//usado para escolher qual ID do vetor acima será usado.
 char flag= false; //flag usada para avisar que a serial recebeu dados
 char comandos = 0;//usado para escolher qual comando enviar.
@@ -164,16 +170,16 @@ void selecionarChaveThingSpeak()
 {
   switch (id) {
           case 2:  // your hand is a few inches from the sensor
-          chave_escrita_thingspeak = "UESIQVP4GVQMKSXJJ";                
+          chave_escrita_thingspeak = "6CRRBOTJJMKMKWMM";     //ERRADA           
           break;
           case 3:  // your hand is nowhere near the sensor
-          chave_escrita_thingspeak = "DBC8E2SR5NVYM5ND9";  
+          chave_escrita_thingspeak = "6CRRBOTJJMKMKWMR";  
           break;
           case 7:  // your hand is on the sensor
-          chave_escrita_thingspeak = "RSUM8UFCVVFD3P4Z1";      
+          chave_escrita_thingspeak = "6CRRBOTJJMKMKWMM";      //ERRADA
           break;
           default:
-          chave_escrita_thingspeak = "RSUM8UFCVVFD3P4Z1";      
+          chave_escrita_thingspeak = "6CRRBOTJJMKMKWMR";      
           break;
         }
         //        chave_escrita_thingspeak = ChavesThing[id];
@@ -202,6 +208,7 @@ void preparStringThingSpeak()
 }
 void  pegarDadosSerial()
 {
+        int endvalues;
         S1=0;
         S2=0;
         S3=0;
@@ -220,6 +227,11 @@ void  pegarDadosSerial()
           S6 = SWSerial2.parseInt();
           S7 = SWSerial2.parseInt();
         }  
+        while (SWSerial2.available()>0) // Flush data
+        {
+          endvalues = SWSerial2.parseInt();
+          
+        }
 }
 
 void lerRadio()
