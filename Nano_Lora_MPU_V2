@@ -25,14 +25,15 @@ bool led_state = false;   //Definir estado de LED do Arduino nano
 bool first_time =true;    // Variavel para verificar se é a primeira vez que esta sendo ligado
 
 unsigned long millisTarefa1 = millis();    // Variavel para o tempo de envio de sinal
-unsigned long delta_tempo = 6000000;
-const unsigned long timeGetInfo =600000;  //Tempo para puxar dados do sensor
+unsigned long delta_tempo = 3000000;
+const unsigned long timeGetInfo =300000;  //Tempo para puxar dados do sensor
 
 String postStr;   //Variavel global com o texto que será enviado.
 
 // variáveis para armazenar os dados "crus" do acelerômetro
 int16_t AcX, AcY, AcZ, Tmp, GyX, GyY, GyZ, angx, angy, angz;
 int u1,u2,u3 ; //Leituras das umidades
+
 
 
 
@@ -47,9 +48,11 @@ void setup()
   delay(100);
   Serial.println("Iniciando configuração do MPU6050");
   SWSerial2.begin(9600);
-  
+  Serial.println(F("InitI2C"));
   initI2C(); //Inicia comunicação I2C
+  Serial.println(F("InitMPU"));
   initMPU(); // Inicia o MPU
+    Serial.println(F("CheckADDR"));
   checkMPU(MPU_ADDR); // Verifica o MPU
  
   Serial.println("Configuração finalizada, iniciando loop");  
@@ -67,7 +70,7 @@ void loop()
   {
         ler_sensores();
         criarTextoParaEnviar();  //Converte as variaveis em texto para enviar postSTR
-        millisTarefa1=millis();
+        millisTarefa1 = millis();
         Serial.println("Enviando dados");
         postStr +="/D";
         SWSerial2.print(postStr);
@@ -125,10 +128,21 @@ void initI2C()   //Inicializa o I2C para o sensor de aceleração
  */
 void writeRegMPU(int16_t reg, int16_t val)      //aceita um registro e um valor como parâmetro
 {
+  int retorno;
+  int nbyte;
+  Serial.println(F("writeREGMPU"));
   Wire.beginTransmission(MPU_ADDR);     // inicia comunicação com endereço do MPU6050
+  Serial.println(F("After begin transmission"));
   Wire.write(reg);                      // envia o registro com o qual se deseja trabalhar
-  Wire.write(val);                      // escreve o valor no registro
-  Wire.endTransmission(true);           // termina a transmissão
+    Serial.println(F("After first write"));
+  nbyte = Wire.write(val);                      // escreve o valor no registro
+  Serial.print("Nbyte escritos = ");
+  Serial.print(nbyte);
+  Serial.println(F(" - After second write"));
+  retorno = Wire.endTransmission(true);           // termina a transmissão
+  Serial.print("endTransmission =  ");
+  Serial.print(retorno);
+  Serial.println(F("After end transmission"));
 
 }
  
@@ -195,6 +209,7 @@ void checkMPU(int mpu_addr)
 void initMPU()
 {
   setSleepOff();
+  
   setGyroScale();
   setAccelScale();
 }
@@ -307,9 +322,25 @@ void readRawMPU()
 
 void readUmidade()
 {
-  u1 = analogRead(A0);
-  u2 = analogRead(A1);
-  u3 = analogRead(A2);
+  u1 = readSensor(A0);
+  u2 = readSensor(A1);
+  u3 = readSensor(A2);
+}
+
+int readSensor(int pin) { //Read 1
+  int total = 0;
+  int sensorValue = 0;
+  int totalu = 0;
+  int ntimes = 10;
+  // lê o sensor 10 vezes
+  for (int i = 0; i < ntimes; i++) {
+    sensorValue = analogRead(pin);
+    totalu += sensorValue;
+    delay(5);
+  }
+
+  // calcula a média
+  return total / 10;
 }
 
 void criarTextoParaEnviar()
