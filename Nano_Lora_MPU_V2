@@ -66,16 +66,18 @@ void loop()
   atualiza_delta_tempo();
   
 
-  //if ( leitura && delta_tempo>timeGetInfo)
-  if ( delta_tempo>timeGetInfo)
+  if ( leitura && delta_tempo>timeGetInfo)
+  //if ( delta_tempo>timeGetInfo)
   {
+        
         ler_sensores();
         criarTextoParaEnviar();  //Converte as variaveis em texto para enviar postSTR
         millisTarefa1 = millis();
         Serial.println("Enviando dados");
         //postStr +="/D";
         SWSerial2.print(postStr);
-        delay(10000);
+        piscaLed(3); //Pisca 3 vezes depois de enviar os dados
+        delay(7000);
   }
   
   delay(1000);
@@ -88,6 +90,15 @@ void loop()
    * *************FUNÇÕES*******************
    * 
    * **************************************/
+void piscaLed(int ntimes)
+{
+  for (int i = 0; i < ntimes; i++) {
+    digitalWrite(LED_BUILTIN, HIGH);
+    delay(500);
+    digitalWrite(LED_BUILTIN, LOW);
+    delay(500);
+  }
+}
 void ler_sensores()
 {
         readRawMPU();    // lê os dados do sensor e os almacena nas variaves globais
