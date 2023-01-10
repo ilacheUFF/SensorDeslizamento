@@ -26,7 +26,7 @@ bool first_time =true;    // Variavel para verificar se é a primeira vez que es
 
 unsigned long millisTarefa1 = millis();    // Variavel para o tempo de envio de sinal
 unsigned long delta_tempo = 3000000;
-const unsigned long timeGetInfo =300000;  //Tempo para puxar dados do sensor
+const unsigned long timeGetInfo =30000;  //Tempo para puxar dados do sensor
 
 String postStr;   //Variavel global com o texto que será enviado.
 
@@ -66,13 +66,14 @@ void loop()
   atualiza_delta_tempo();
   
 
-  if ( leitura && delta_tempo>timeGetInfo)
+  //if ( leitura && delta_tempo>timeGetInfo)
+  if ( delta_tempo>timeGetInfo)
   {
         ler_sensores();
         criarTextoParaEnviar();  //Converte as variaveis em texto para enviar postSTR
         millisTarefa1 = millis();
         Serial.println("Enviando dados");
-        postStr +="/D";
+        //postStr +="/D";
         SWSerial2.print(postStr);
         delay(10000);
   }
@@ -328,7 +329,6 @@ void readUmidade()
 }
 
 int readSensor(int pin) { //Read 1
-  int total = 0;
   int sensorValue = 0;
   int totalu = 0;
   int ntimes = 10;
@@ -340,7 +340,7 @@ int readSensor(int pin) { //Read 1
   }
 
   // calcula a média
-  return total / 10;
+  return totalu / ntimes;
 }
 
 void criarTextoParaEnviar()
