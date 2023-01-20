@@ -1,4 +1,4 @@
-//=======================================================================================//
+ //=======================================================================================//
 /*  Modificado por Ivanovich 30/11/22.  
  *   
  *   pROGRAMA AINDA NÃO TESTADO
@@ -15,14 +15,14 @@ SoftwareSerial SWSerial2(12, 14);  //D6, D5 : Será usada a serial por software 
 
 /* defines - wi-fi */
 
-//#define SSID_REDE "ENG_TER_2G" /* coloque aqui o nome da rede que se deseja conectar */
-//#define SENHA_REDE "engenharia235" /* coloque aqui a senha da rede que se deseja conectar */
+#define SSID_REDE "ENG_TER_2G" /* coloque aqui o nome da rede que se deseja conectar */
+#define SENHA_REDE "engenharia235" /* coloque aqui a senha da rede que se deseja conectar */
 
 //#define SSID_REDE "PGRAEL-Visitantes" /* coloque aqui o nome da rede que se deseja conectar */
 //#define SENHA_REDE "bonsventos" /* coloque aqui a senha da rede que se deseja conectar */
 
-#define SSID_REDE "Federal 2014" /* coloque aqui o nome da rede que se deseja conectar */
-#define SENHA_REDE "bucaramanga" /* coloque aqui a senha da rede que se deseja conectar */
+//#define SSID_REDE "Federal 2014" /* coloque aqui o nome da rede que se deseja conectar */
+//#define SENHA_REDE "bucaramanga" /* coloque aqui a senha da rede que se deseja conectar */
 
 #define LED_PLACA 16
 
@@ -51,7 +51,7 @@ char inData[255]; // Buffer com tamanho suficiente para receber qualquer mensage
 char inChar=-1; // char para receber um caractere lido
 byte indice = 0; // índice para percorrer o vetor de char = Buffer
 const int nRadios=3;
-int listaEndDevices[nRadios] = {3,7,2};//pode aumentar o tamanho do arry e incluir um novo ID. coloquei 1,2,1,2,1 ... porque no teste só temos os IDs 1 e 2 ... em uma rede maior ... deve-se cololcar os IDs existentes 1,2,3,50,517, 714,... qualquer inteiro de 1 até 1023.
+int listaEndDevices[nRadios] = {7,3,2};//pode aumentar o tamanho do arry e incluir um novo ID. coloquei 1,2,1,2,1 ... porque no teste só temos os IDs 1 e 2 ... em uma rede maior ... deve-se cololcar os IDs existentes 1,2,3,50,517, 714,... qualquer inteiro de 1 até 1023.
 int polingID=0;//usado para escolher qual ID do vetor acima será usado.
 char flag= false; //flag usada para avisar que a serial recebeu dados
 char comandos = 0;//usado para escolher qual comando enviar.
@@ -127,6 +127,7 @@ void loop() {
         id=listaEndDevices[polingID%nRadios];
         //LerNivelRx(id);//%nRadios porque o array com IDs de EndDevices a ser percorrido só tem 5 endereços... pode-se diminuir ou aumentar ... depende do número de IDs/EndDevices existentes na rede
         //lerRadio();
+        limparSerial();
 
         Serial.println("Liga Sensor");//imprime na serial do monitor
         SetGPIO(id, 0x00, 0x01); //IMPORTANTE: Aqui temos uma ação... Se a entrada digital estiver em nível alto então... é chamada a função SetGPIO que por sua vez envia o comando para ligar a o gpio 0 e acinar o Relé ...
@@ -208,7 +209,7 @@ void preparStringThingSpeak()
 }
 void  pegarDadosSerial()
 {
-        int endvalues;
+
         S1=0;
         S2=0;
         S3=0;
@@ -227,7 +228,13 @@ void  pegarDadosSerial()
           S6 = SWSerial2.parseInt();
           S7 = SWSerial2.parseInt();
         }  
-        while (SWSerial2.available()>0) // Flush data
+        limparSerial();
+        
+}
+void limparSerial()
+{
+  int endvalues;
+  while (SWSerial2.available()>0) // Flush data
         {
           endvalues = SWSerial2.parseInt();
           
