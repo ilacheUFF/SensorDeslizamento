@@ -171,13 +171,13 @@ void selecionarChaveThingSpeak()
 {
   switch (id) {
           case 2:  // your hand is a few inches from the sensor
-          chave_escrita_thingspeak = "6CRRBOTJJMKMKWMM";     //ERRADA           
+          chave_escrita_thingspeak = "6CRRBOTJJMKMKWMR";                
           break;
           case 3:  // your hand is nowhere near the sensor
           chave_escrita_thingspeak = "6CRRBOTJJMKMKWMR";  
           break;
           case 7:  // your hand is on the sensor
-          chave_escrita_thingspeak = "6CRRBOTJJMKMKWMM";      //ERRADA
+          chave_escrita_thingspeak = "6CRRBOTJJMKMKWMR";      
           break;
           default:
           chave_escrita_thingspeak = "6CRRBOTJJMKMKWMR";      
